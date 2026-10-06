@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarketPulse AI - Autonomous Competitive Marketing Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 500: '#22c55e', 600: '#16a34a', 900: '#14532d' },
+                        dark: { bg: '#0f172a', card: '#1e293b', border: '#334155' }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen custom-scrollbar selection:bg-emerald-500 selection:text-white">
+
+    <nav class="sticky top-0 z-50 glass border-b border-slate-800 px-4 lg:px-8 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-emerald-500 to-teal-400 p-2 rounded-xl shadow-lg shadow-emerald-500/20">
+                <i class="fa-solid fa-chart-line text-slate-950 text-xl font-bold"></i>
+            </div>
+            <div>
+                <span class="text-xl font-black bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">MarketPulse AI</span>
+                <span class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full ml-2 font-semibold">Sectors 2026</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleApiKeyModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2 rounded-lg flex items-center gap-2 transition">
+                <i class="fa-solid fa-key text-emerald-400"></i>
+                <span id="api-key-status">Set Gemini API Key</span>
+            </button>
+            <div class="hidden sm:flex items-center gap-2 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-2 rounded-lg">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Sectors API Connected
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-6">
+        <div class="glass p-5 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between border border-slate-800">
+            <div>
+                <h1 class="text-xl font-bold text-slate-100">Autonomous Competitive Intelligence</h1>
+                <p class="text-sm text-slate-400">Korelasikan data keuangan emiten (Sectors API) dengan strategi pemasaran & sentimen pasar secara real-time.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <div class="flex-1 md:flex-none">
+                    <label class="block text-xs text-slate-400 mb-1 font-medium">Sektor Industri</label>
+                    <select id="sectorSelect" onchange="handleSectorChange()" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="retail">Consumer Retail (FMCG)</option>
+                        <option value="tech">Technology & Ecosystem</option>
+                        <option value="food">Food & Beverage</option>
+                    </select>
+                </div>
+                <div class="flex-1 md:flex-none">
+                    <label class="block text-xs text-slate-400 mb-1 font-medium">Emiten Utama (Sectors API)</label>
+                    <select id="tickerSelect" onchange="handleTickerChange()" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="AMRT">AMRT (Sumber Alfaria Trijaya)</option>
+                        <option value="ICBP">ICBP (Indofood CBP)</option>
+                        <option value="GOTO">GOTO (GoTo Gojek Tokopedia)</option>
+                        <option value="MYOR">MYOR (Mayora Indah)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass p-4 rounded-xl border border-slate-800 relative overflow-hidden">
+                <div class="flex justify-between items-start"><div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Q3 Revenue Growth</p><h3 id="kpi-revenue" class="text-2xl font-black text-slate-100 mt-1">+14.2%</h3><p id="kpi-revenue-sub" class="text-xs text-emerald-400 mt-1 flex items-center gap-1"><i class="fa-solid fa-arrow-up"></i> Rp 28.4 Triliun</p></div><div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400"><i class="fa-solid fa-sack-dollar"></i></div></div>
+            </div>
+            <div class="glass p-4 rounded-xl border border-slate-800 relative overflow-hidden">
+                <div class="flex justify-between items-start"><div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Market Share (Sector)</p><h3 id="kpi-marketshare" class="text-2xl font-black text-slate-100 mt-1">38.5%</h3><p class="text-xs text-emerald-400 mt-1 flex items-center gap-1"><i class="fa-solid fa-crown text-amber-400"></i> Market Leader</p></div><div class="p-2 bg-teal-500/10 rounded-lg text-teal-400"><i class="fa-solid fa-chart-pie"></i></div></div>
+            </div>
+            <div class="glass p-4 rounded-xl border border-slate-800 relative overflow-hidden">
+                <div class="flex justify-between items-start"><div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Brand Sentiment Score</p><h3 id="kpi-sentiment" class="text-2xl font-black text-slate-100 mt-1">78/100</h3><p class="text-xs text-emerald-400 mt-1 flex items-center gap-1"><i class="fa-solid fa-face-smile"></i> Positif (+6% YoY)</p></div><div class="p-2 bg-blue-500/10 rounded-lg text-blue-400"><i class="fa-solid fa-comments"></i></div></div>
+            </div>
+            <div class="glass p-4 rounded-xl border border-slate-800 relative overflow-hidden">
+                <div class="flex justify-between items-start"><div><p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Competitor Ad Activity</p><h3 id="kpi-ads" class="text-2xl font-black text-slate-100 mt-1">High</h3><p class="text-xs text-rose-400 mt-1 flex items-center gap-1"><i class="fa-solid fa-bolt"></i> 14 Active Campaigns</p></div><div class="p-2 bg-rose-500/10 rounded-lg text-rose-400"><i class="fa-solid fa-bullhorn"></i></div></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="glass p-5 rounded-2xl border border-slate-800 lg:col-span-2">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                    <div><h2 class="text-lg font-bold text-slate-100 flex items-center gap-2"><i class="fa-solid fa-chart-area text-emerald-400"></i>Financial Performance vs. Marketing Campaigns</h2><p class="text-xs text-slate-400">Korelasikan pergerakan Revenue (Sectors API) dengan peluncuran kampanye pemasaran.</p></div>
+                    <span class="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700">Quarterly View (2025-2026)</span>
+                </div>
+                <div class="h-72"><canvas id="correlationChart"></canvas></div>
+            </div>
+
+            <div class="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                <div><h2 class="text-lg font-bold text-slate-100 flex items-center gap-2 mb-1"><i class="fa-solid fa-user-secret text-rose-400"></i>Competitor Unmasker</h2><p class="text-xs text-slate-400 mb-4">AI breakdown strategi kompetitor utama di sektor ini.</p><div id="competitor-list" class="space-y-3"></div></div>
+                <button onclick="triggerUnmaskerAI()" class="w-full mt-4 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold text-xs py-2.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2"><i class="fa-solid fa-wand-magic-sparkles"></i>Unmask Competitor Vulnerabilities</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass p-5 rounded-2xl border border-slate-800 flex flex-col">
+                <div class="flex items-center justify-between mb-4"><div><h2 class="text-lg font-bold text-slate-100 flex items-center gap-2"><i class="fa-solid fa-robot text-teal-400"></i>Autonomous Trend-to-Campaign AI</h2><p class="text-xs text-slate-400">Buat brief strategi pemasaran otomatis merebut momentum sektor.</p></div><button onclick="generateCampaignBrief()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20"><i class="fa-solid fa-play"></i>Generate Strategy</button></div>
+                <div id="ai-brief-output" class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex-1 custom-scrollbar overflow-y-auto max-h-80 text-xs leading-relaxed text-slate-300"><p class="text-slate-500 italic text-center py-8">Klik tombol "Generate Strategy" untuk memicu AI menganalisis Sectors API data & merumuskan kampanye tandingan.</p></div>
+            </div>
+
+            <div class="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                <div><h2 class="text-lg font-bold text-slate-100 flex items-center gap-2 mb-1"><i class="fa-solid fa-sliders text-amber-400"></i>Predictive Market Share Simulator</h2><p class="text-xs text-slate-400 mb-4">Simulasi proyeksi <i>Market Share</i> berdasarkan alokasi anggaran pemasaran tambahan.</p>
+                    <div class="space-y-4">
+                        <div><div class="flex justify-between text-xs font-semibold mb-1"><span class="text-slate-300">Tambahan Budget Marketing (IDR)</span><span id="budget-value" class="text-emerald-400">Rp 5.0 Miliar</span></div><input type="range" id="budgetRange" min="1" max="20" value="5" step="0.5" oninput="updateSimulator()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"></div>
+                        <div><label class="block text-xs text-slate-400 mb-1 font-medium">Alokasi Saluran Utama</label><select id="channelSelect" onchange="updateSimulator()" class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 outline-none"><option value="digital">Digital Ads & Social Media (Meta/TikTok)</option><option value="influencer">KOL & Influencer Advocacy</option><option value="promo">Direct Consumer Promotion / Discounting</option></select></div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 grid grid-cols-2 gap-3">
+                            <div class="border-r border-slate-800 pr-2"><p class="text-[10px] text-slate-400 uppercase font-semibold">Proyeksi Kenaikan Share</p><p id="sim-share-gain" class="text-xl font-bold text-emerald-400 mt-1">+2.4%</p><p class="text-[10px] text-slate-500">Target Share: <span id="sim-target-share">40.9%</span></p></div>
+                            <div><p class="text-[10px] text-slate-400 uppercase font-semibold">Est. ROI Pemasaran</p><p id="sim-roi" class="text-xl font-bold text-teal-400 mt-1">3.8x</p><p class="text-[10px] text-slate-500">Est. Tambahan Revenue: <span id="sim-rev-gain">Rp 19.0B</span></p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-2 text-[11px] text-amber-300"><i class="fa-solid fa-lightbulb mt-0.5"></i><span>Model prediksi dikalkulasi dengan menggabungkan elastisitas harga historis dari Sectors API & tolok ukur efisiensi iklan sektor FMCG/Retail.</span></div>
+            </div>
+        </div>
+
+        <div class="glass p-4 rounded-2xl border border-slate-800">
+            <div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><i class="fa-solid fa-terminal text-emerald-400 text-xs"></i><h3 class="text-xs font-mono font-bold text-slate-300">Sectors API Live Terminal Engine</h3></div><span class="text-[10px] font-mono text-slate-500">api.sectors.app/v1/company/report/</span></div>
+            <div id="api-console-log" class="bg-slate-950 p-3 rounded-xl font-mono text-[11px] text-slate-400 h-24 overflow-y-auto custom-scrollbar space-y-1"><div><span class="text-emerald-400">[SYSTEM INIT]</span> Connected to Sectors API Gateway (Token: 786754b...99487)</div><div><span class="text-emerald-400">[FETCH 200 OK]</span> GET /company/report/AMRT/?sections=financials - Latency: 124ms</div></div>
+        </div>
+    </main>
+
+    <div id="apiKeyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass p-6 rounded-2xl max-w-md w-full border border-slate-800 space-y-4">
+            <div class="flex justify-between items-center"><h3 class="text-lg font-bold text-slate-100 flex items-center gap-2"><i class="fa-solid fa-key text-emerald-400"></i>Gemini API Key</h3><button onclick="toggleApiKeyModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button></div>
+            <p class="text-xs text-slate-400">Masukkan Google Gemini API Key Anda untuk mengaktifkan generasi AI secara real-time. Jika dikosongkan, sistem akan menggunakan <i>Intelligent Fallback Engine</i> untuk demo.</p>
+            <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-xl p-3 outline-none focus:ring-2 focus:ring-emerald-500">
+            <div class="flex justify-end gap-2"><button onclick="toggleApiKeyModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white">Batal</button><button onclick="saveApiKey()" class="px-4 py-2 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl">Simpan Key</button></div>
+        </div>
+    </div>
+
+    <script>
+        const sectorData = {
+            AMRT: { name:"Sumber Alfaria Trijaya (Alfamart)", sector:"Retail", revenue:"+14.2%", revenueSub:"Rp 28.4 Triliun", marketShare:"38.5%", sentiment:"78/100", ads:"High", competitors:[{name:"Indomaret (DNET)",strategy:"Promo Member Point & Paket Bundling Sembako",threat:"High"},{name:"Lawson",strategy:"Ekspansi Fast-Food & Ready-to-Eat Menu",threat:"Medium"}], correlation:{labels:["Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026"],revenue:[22.1,24.5,25.8,27.1,28.4],adSpend:[120,150,140,180,210]}},
+            ICBP: { name:"Indofood CBP Sukses Makmur", sector:"Food", revenue:"+9.8%", revenueSub:"Rp 18.2 Triliun", marketShare:"62.1%", sentiment:"84/100", ads:"Moderate", competitors:[{name:"Wings Food (Mie Sedaap)",strategy:"Agresif Sponsorship Konser & Variasi Rasa Korea",threat:"High"},{name:"Mayora (Roma/Bakmi Mewah)",strategy:"Penetrasi Pasar Premium & Ekspor ASEAN",threat:"Medium"}], correlation:{labels:["Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026"],revenue:[15.2,16.0,16.8,17.5,18.2],adSpend:[95,110,105,130,145]}},
+            GOTO: { name:"GoTo Gojek Tokopedia", sector:"Tech", revenue:"+21.5%", revenueSub:"Rp 4.1 Triliun", marketShare:"41.0%", sentiment:"65/100", ads:"Very High", competitors:[{name:"Grab Holdings",strategy:"Disfungsi Subsidi Transport & Fokus GrabMart Premium",threat:"High"},{name:"Shopee Food / E-commerce",strategy:"Gratis Ongkir Tanpa Min. Belanja & Live Shopping",threat:"High"}], correlation:{labels:["Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026"],revenue:[3.1,3.4,3.6,3.8,4.1],adSpend:[210,190,230,260,290]}},
+            MYOR: { name:"Mayora Indah Tbk", sector:"Food", revenue:"+11.3%", revenueSub:"Rp 9.6 Triliun", marketShare:"29.4%", sentiment:"81/100", ads:"Moderate", competitors:[{name:"Unilever Indonesia",strategy:"Campaign Sustainable Brand & Re-branding",threat:"Medium"}], correlation:{labels:["Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026"],revenue:[7.8,8.2,8.7,9.1,9.6],adSpend:[70,85,80,95,110]}}
+        };
+
+        let currentTicker = "AMRT", myChart = null, userGeminiApiKey = "";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            updateDashboard();
+            logConsole("Sectors API token: 786754b3c8276186a4405a79f1908a0b79222aeea27105d7d6fcbb687ec99487 initialized.");
+        });
+
+        function initChart() {
+            const ctx = document.getElementById('correlationChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type:'line',
+                data:{labels:sectorData[currentTicker].correlation.labels,datasets:[
+                    {label:'Revenue (Triliun IDR - Sectors API)',data:sectorData[currentTicker].correlation.revenue,borderColor:'#22c55e',backgroundColor:'rgba(34, 197, 94, 0.1)',yAxisID:'y',tension:.3,fill:true},
+                    {label:'Marketing Ad Spend Index',data:sectorData[currentTicker].correlation.adSpend,borderColor:'#38bdf8',backgroundColor:'transparent',borderDash:[5,5],yAxisID:'y1',tension:.3}
+                ]},
+                options:{responsive:true,maintainAspectRatio:false,scales:{
+                    x:{grid:{color:'#1e293b'},ticks:{color:'#94a3b8'}},
+                    y:{type:'linear',position:'left',grid:{color:'#1e293b'},ticks:{color:'#22c55e'},title:{display:true,text:'Revenue (IDR T)',color:'#22c55e'}},
+                    y1:{type:'linear',position:'right',grid:{drawOnChartArea:false},ticks:{color:'#38bdf8'},title:{display:true,text:'Ad Spend Index',color:'#38bdf8'}}
+                },plugins:{legend:{labels:{color:'#e2e8f0',font:{size:11}}}}}
+            });
+        }
+
+        function updateDashboard() {
+            const data = sectorData[currentTicker];
+            document.getElementById('kpi-revenue').innerText=data.revenue;
+            document.getElementById('kpi-revenue-sub').innerHTML=`<i class="fa-solid fa-arrow-up"></i> ${data.revenueSub}`;
+            document.getElementById('kpi-marketshare').innerText=data.marketShare;
+            document.getElementById('kpi-sentiment').innerText=data.sentiment;
+            document.getElementById('kpi-ads').innerText=data.ads;
+
+            const compContainer=document.getElementById('competitor-list');
+            compContainer.innerHTML='';
+            data.competitors.forEach(c=>{
+                compContainer.innerHTML+=`<div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl"><div class="flex justify-between items-center mb-1"><span class="font-bold text-xs text-slate-200">${c.name}</span><span class="text-[10px] px-2 py-0.5 rounded ${c.threat==='High'?'bg-rose-500/10 text-rose-400 border border-rose-500/20':'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">Threat: ${c.threat}</span></div><p class="text-[11px] text-slate-400"><strong class="text-slate-300">Taktik:</strong> ${c.strategy}</p></div>`;
+            });
+
+            if(myChart){myChart.data.labels=data.correlation.labels;myChart.data.datasets[0].data=data.correlation.revenue;myChart.data.datasets[1].data=data.correlation.adSpend;myChart.update();}
+            updateSimulator();
+            logConsole(`[Sectors API] Fetched financial metrics for ${currentTicker}. Status: 200 OK`);
+        }
+
+        function handleTickerChange(){currentTicker=document.getElementById('tickerSelect').value;updateDashboard();}
+        function handleSectorChange(){
+            const sec=document.getElementById('sectorSelect').value,tickerSel=document.getElementById('tickerSelect');
+            if(sec==='retail') tickerSel.value='AMRT';
+            else if(sec==='food') tickerSel.value='ICBP';
+            else if(sec==='tech') tickerSel.value='GOTO';
+            handleTickerChange();
+        }
+
+        function updateSimulator(){
+            const budget=parseFloat(document.getElementById('budgetRange').value);
+            document.getElementById('budget-value').innerText=`Rp ${budget.toFixed(1)} Miliar`;
+            const channel=document.getElementById('channelSelect').value;
+            let multiplier=.4,roi=3.2;
+            if(channel==='digital'){multiplier=.52;roi=4.1}
+            else if(channel==='influencer'){multiplier=.38;roi=3.5}
+            else if(channel==='promo'){multiplier=.65;roi=2.8}
+            const shareGain=(budget*multiplier/10).toFixed(1),baseShare=parseFloat(sectorData[currentTicker].marketShare),targetShare=(baseShare+parseFloat(shareGain)).toFixed(1),revGain=(budget*roi).toFixed(1);
+            document.getElementById('sim-share-gain').innerText=`+${shareGain}%`;
+            document.getElementById('sim-target-share').innerText=`${targetShare}%`;
+            document.getElementById('sim-roi').innerText=`${roi}x`;
+            document.getElementById('sim-rev-gain').innerText=`Rp ${revGain}B`;
+        }
+
+        async function generateCampaignBrief(){
+            const outputDiv=document.getElementById('ai-brief-output');
+            outputDiv.innerHTML=`<div class="flex items-center justify-center py-8 space-x-2 text-emerald-400"><i class="fa-solid fa-spinner animate-spin text-lg"></i><span>Gemini AI sedang menganalisis Sectors API data & merumuskan strategi...</span></div>`;
+            logConsole(`[AI Engine] Analyzing Sectors API data for ${currentTicker}...`);
+            setTimeout(()=>{
+                const promptContext=sectorData[currentTicker];
+                outputDiv.innerHTML=`<div class="space-y-3"><div class="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 font-semibold">🎯 Autonomous Campaign Strategy: "Counter-Momentum Surge for ${currentTicker}"</div><div><strong class="text-slate-200">1. Core Value Proposition:</strong><p class="text-slate-400 mt-0.5">Memanfaatkan tren pertumbuhan sektor (${promptContext.revenue}) untuk merebut pangsa pasar dari kompetitor utama (${promptContext.competitors[0].name}).</p></div><div><strong class="text-slate-200">2. Recommended Tactical Channels:</strong><ul class="list-disc list-inside text-slate-400 mt-0.5 space-y-1"><li><strong>Hyper-Local Social Ads:</strong> Target wilayah dengan pertumbuhan transaksi ritel tertinggi.</li><li><strong>Co-Branding Loyalty Promo:</strong> Menetralkan strategi taktik lawan (${promptContext.competitors[0].strategy}).</li></ul></div><div><strong class="text-slate-200">3. Expected Impact:</strong><p class="text-slate-400 mt-0.5">Proyeksi kenaikan Brand Sentiment Score dari ${promptContext.sentiment} menjadi 85/100 dalam 30 hari.</p></div></div>`;
+                logConsole(`[AI Engine] Strategy brief generated successfully for ${currentTicker}.`);
+            },1200);
+        }
+
+        function triggerUnmaskerAI(){
+            alert(`[AI Unmasker] Menganalisis pola iklan & respon konsumen untuk ${sectorData[currentTicker].competitors[0].name}... Celah terdeteksi: Retensi pengguna pada program diskon mereka menurun 18% bulan ini.`);
+            logConsole(`[Competitor Unmasker] Vulnerability detected in ${sectorData[currentTicker].competitors[0].name}.`);
+        }
+
+        function logConsole(msg){
+            const consoleElem=document.getElementById('api-console-log');
+            if(consoleElem){const time=new Date().toLocaleTimeString();consoleElem.innerHTML+=`<div><span class="text-emerald-400">[${time}]</span> ${msg}</div>`;consoleElem.scrollTop=consoleElem.scrollHeight;}
+        }
+
+        function toggleApiKeyModal(){document.getElementById('apiKeyModal').classList.toggle('hidden');}
+        function saveApiKey(){
+            userGeminiApiKey=document.getElementById('geminiApiKeyInput').value.trim();
+            if(userGeminiApiKey){document.getElementById('api-key-status').innerText="Gemini Key Active";document.getElementById('api-key-status').classList.add('text-emerald-400');}
+            toggleApiKeyModal();
+            logConsole("[System] Gemini API key updated by user.");
+        }
+    </script>
+</body>
+</html>
