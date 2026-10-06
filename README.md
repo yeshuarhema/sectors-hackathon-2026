@@ -1,0 +1,1 @@
+# sectors-hackathon-2026
